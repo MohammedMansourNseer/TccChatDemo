@@ -6,8 +6,12 @@ import dev.tcc.chat.domain.model.Message
 import dev.tcc.chat.utililty.Base64Util
 import dev.tcc.chat.utililty.CryptoManager
 import dev.tcc.chat.utililty.EncryptedData
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -17,6 +21,10 @@ class MessageRepository @Inject constructor(
     private val cryptoManager: CryptoManager
 ) {
 
+    /**
+     * Inserts a new message into the database.
+     * The message content is encrypted before storage.
+     */
     suspend fun insertMessage(message: Message): Long {
         val encrypted = cryptoManager.encrypt(message.content)
 
@@ -31,6 +39,10 @@ class MessageRepository @Inject constructor(
         return messageDao.insertMessage(entity)
     }
 
+    /**
+     * Gets all messages as a Flow.
+     * Messages are decrypted on-the-fly as they're emitted.
+     */
     fun getAllMessages(): Flow<List<Message>> {
         return messageDao.getAllMessages().map { entities ->
             entities.map { entity ->
@@ -39,10 +51,24 @@ class MessageRepository @Inject constructor(
         }
     }
 
+    /**
+     * Gets the total message count.
+     */
     suspend fun getMessageCount(): Int {
         return messageDao.getMessageCount()
     }
 
+    /**
+     * Deletes all messages.
+     */
+    suspend fun deleteAllMessages() {
+        messageDao.deleteAllMessages()
+    }
+
+    /**
+     * Inserts multiple messages in bulk.
+     * Each message is encrypted before storage.
+     */
     suspend fun insertMessages(messages: List<Message>) {
         val entities = messages.map { message ->
             val encrypted = cryptoManager.encrypt(message.content)
@@ -57,7 +83,9 @@ class MessageRepository @Inject constructor(
         messageDao.insertMessages(entities)
     }
 
-
+    /**
+     * Decrypts a MessageEntity to a Message.
+     */
     private fun decryptEntity(entity: MessageEntity): Message {
         val encryptedData = EncryptedData(
             ciphertext = Base64Util.decode(entity.encryptedContent),
@@ -74,3 +102,4 @@ class MessageRepository @Inject constructor(
         )
     }
 }
+

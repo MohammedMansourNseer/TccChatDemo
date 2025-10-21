@@ -12,4 +12,3 @@ class ObserveMessagesUseCase @Inject constructor(
         return repository.getAllMessages()
     }
 }
-

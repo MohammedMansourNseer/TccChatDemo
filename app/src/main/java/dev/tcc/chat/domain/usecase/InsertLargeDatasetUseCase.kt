@@ -5,6 +5,7 @@ import dev.tcc.chat.domain.model.Message
 import javax.inject.Inject
 import kotlin.random.Random
 
+
 class InsertLargeDatasetUseCase @Inject constructor(
     private val repository: MessageRepository
 ) {
@@ -13,6 +14,7 @@ class InsertLargeDatasetUseCase @Inject constructor(
             val messages = mutableListOf<Message>()
             val currentTime = System.currentTimeMillis()
             
+            // Generate messages with varied content and timestamps
             for (i in 1..count) {
                 val isSent = Random.nextBoolean()
                 val content = if (isSent) {
@@ -24,7 +26,7 @@ class InsertLargeDatasetUseCase @Inject constructor(
                 messages.add(
                     Message(
                         content = content,
-                        timestamp = currentTime - (count - i) * 60000L,
+                        timestamp = currentTime - (count - i) * 60000L, // Space messages by 1 minute
                         isSent = isSent
                     )
                 )

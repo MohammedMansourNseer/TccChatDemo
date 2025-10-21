@@ -76,6 +76,9 @@ class ChatViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Loads all messages from the database and observes changes.
+     */
     private fun loadMessages() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
@@ -103,7 +106,9 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-
+    /**
+     * Inserts a large dataset for performance testing.
+     */
     private fun insertLargeDataset(count: Int) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
@@ -123,6 +128,9 @@ class ChatViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Updates the input text field state.
+     */
     private fun updateInputText(text: String) {
         _state.update { it.copy(inputText = text) }
     }
