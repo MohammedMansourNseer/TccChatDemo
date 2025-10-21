@@ -18,14 +18,14 @@ class MessageRepository @Inject constructor(
 ) {
 
     suspend fun insertMessage(message: Message): Long {
-        val encrypted = cryptoManager.encrypt(message.content.orEmpty())
+        val encrypted = cryptoManager.encrypt(message.content)
 
         val entity = MessageEntity(
-            id = message.id ?: 0L,
+            id = message.id,
             encryptedContent = Base64Util.encode(encrypted.ciphertext),
             iv = Base64Util.encode(encrypted.iv),
-            timestamp = message.timestamp ?: System.currentTimeMillis(),
-            isSent = message.isSent ?: false
+            timestamp = message.timestamp,
+            isSent = message.isSent
         )
 
         return messageDao.insertMessage(entity)
@@ -43,19 +43,15 @@ class MessageRepository @Inject constructor(
         return messageDao.getMessageCount()
     }
 
-    suspend fun deleteAllMessages() {
-        messageDao.deleteAllMessages()
-    }
-
     suspend fun insertMessages(messages: List<Message>) {
         val entities = messages.map { message ->
-            val encrypted = cryptoManager.encrypt(message.content.orEmpty())
+            val encrypted = cryptoManager.encrypt(message.content)
             MessageEntity(
-                id = message.id ?: 0L,
+                id = message.id,
                 encryptedContent = Base64Util.encode(encrypted.ciphertext),
                 iv = Base64Util.encode(encrypted.iv),
-                timestamp = message.timestamp ?: System.currentTimeMillis(),
-                isSent = message.isSent ?: false
+                timestamp = message.timestamp,
+                isSent = message.isSent
             )
         }
         messageDao.insertMessages(entities)
