@@ -85,7 +85,6 @@ fun ChatScreen(
                 isSending = state.isSending,
                 modifier = Modifier
                     .windowInsetsPadding(WindowInsets.navigationBars)
-                    .imePadding()
             )
         }
     ) { paddingValues ->
@@ -94,6 +93,7 @@ fun ChatScreen(
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(paddingValues)
+                .imePadding()
         ) {
             if (state.isLoading && state.messages.isEmpty()) {
                 CircularProgressIndicator(
@@ -399,6 +399,7 @@ private fun ChatScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .imePadding()
         ) {
             if (messages.isEmpty()) {
                 EmptyState(modifier = Modifier.align(Alignment.Center))
