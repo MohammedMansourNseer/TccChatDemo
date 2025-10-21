@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">Tcc-Chat</string>
+
+
+    <string name="encrypted_chat_title">Encrypted Chat</string>
+    <string name="messages_count">%1$d messages</string>
+    <string name="insert_1k_label">+ 1K</string>
+    <string name="type_message_placeholder">Type a message...</string>
+    <string name="send_message_cd">Send message</string>
+    <string name="empty_icon">🔒</string>
+    <string name="empty_title">End-to-End Encrypted Chat</string>
+    <string name="empty_subtitle_1">Messages are encrypted and stored securely</string>
+    <string name="empty_subtitle_2">Send a message to get started</string>
+
 </resources>

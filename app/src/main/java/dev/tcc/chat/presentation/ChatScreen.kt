@@ -12,19 +12,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.tcc.chat.R
 import dev.tcc.chat.domain.model.Message
 import dev.tcc.chat.presentation.chat.component.MessageBubble
 import dev.tcc.chat.presentation.chat.contract.ChatIntent
 import dev.tcc.chat.ui.theme.ChatTheme
 import kotlinx.coroutines.launch
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,12 +51,12 @@ fun ChatScreen(
                 title = {
                     Column {
                         Text(
-                            text = "Encrypted Chat",
+                            text = stringResource(id = R.string.encrypted_chat_title),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "${state.messageCount} messages",
+                            text = stringResource(id = R.string.messages_count, state.messageCount),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
@@ -70,7 +70,7 @@ fun ChatScreen(
                     TextButton(
                         onClick = { viewModel.handleIntent(ChatIntent.InsertLargeDataset(1000)) }
                     ) {
-                        Text("+ 1K")
+                        Text(stringResource(id = R.string.insert_1k_label))
                     }
                 }
             )
@@ -156,7 +156,7 @@ fun ChatInputBar(
                 value = inputText,
                 onValueChange = onInputChange,
                 modifier = Modifier.weight(1f),
-                placeholder = { Text("Type a message...") },
+                placeholder = { Text(stringResource(id = R.string.type_message_placeholder)) },
                 enabled = !isSending,
                 shape = RoundedCornerShape(24.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -185,14 +185,13 @@ fun ChatInputBar(
                 } else {
                     Icon(
                         imageVector = Icons.Default.Send,
-                        contentDescription = "Send message"
+                        contentDescription = stringResource(id = R.string.send_message_cd)
                     )
                 }
             }
         }
     }
 }
-
 
 @Composable
 fun EmptyState(modifier: Modifier = Modifier) {
@@ -202,33 +201,30 @@ fun EmptyState(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "🔒",
+            text = stringResource(id = R.string.empty_icon),
             fontSize = 64.sp
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "End-to-End Encrypted Chat",
+            text = stringResource(id = R.string.empty_title),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Messages are encrypted and stored securely",
+            text = stringResource(id = R.string.empty_subtitle_1),
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "Send a message to get started",
+            text = stringResource(id = R.string.empty_subtitle_2),
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
         )
     }
 }
-
-
-
 
 // ============ PREVIEWS ============
 
@@ -368,12 +364,12 @@ private fun ChatScreenContent(
                 title = {
                     Column {
                         Text(
-                            text = "Encrypted Chat",
+                            text = stringResource(id = R.string.encrypted_chat_title),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "$messageCount messages",
+                            text = stringResource(id = R.string.messages_count, messageCount),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
@@ -385,7 +381,7 @@ private fun ChatScreenContent(
                 ),
                 actions = {
                     TextButton(onClick = onInsertDataset) {
-                        Text("+ 1K")
+                        Text(stringResource(id = R.string.insert_1k_label))
                     }
                 }
             )
