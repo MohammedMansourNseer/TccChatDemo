@@ -10,5 +10,6 @@ data class ChatState(
     val isOtherPersonTyping: Boolean = false,
     val error: String? = null,
     val messageCount: Int = 0,
-    val insertProgress: Int? = null  // Progress for bulk insert (0-100)
+    val insertProgress: Int? = null,
+    val scrollToBottomTick: Long = 0L
 )

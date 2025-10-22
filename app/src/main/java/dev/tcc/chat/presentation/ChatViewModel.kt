@@ -6,7 +6,6 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.chat.domain.usecase.ObserveMessagesPagedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.tcc.chat.data.respository.MessageRepository
 import dev.tcc.chat.domain.model.Message
 import dev.tcc.chat.domain.usecase.*
 import dev.tcc.chat.presentation.chat.contract.ChatIntent
@@ -31,12 +30,10 @@ class ChatViewModel @Inject constructor(
     private val insertLargeDatasetUseCase: InsertLargeDatasetUseCase,
     private val getMessageCountUseCase: GetMessageCountUseCase,
     private val deleteAllMessagesUseCase: DeleteAllMessagesUseCase,
-    private val repository: MessageRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ChatState())
     val state: StateFlow<ChatState> = _state.asStateFlow()
-
 
     val messagesPaged: Flow<PagingData<Message>> = observeMessagesPagedUseCase(pageSize = 100)
         .cachedIn(viewModelScope)
@@ -63,7 +60,7 @@ class ChatViewModel @Inject constructor(
 
             sendMessageUseCase(text)
                 .onSuccess {
-                    _state.update { it.copy(inputText = "", isSending = false) }
+                    _state.update { it.copy(inputText = "", isSending = false, scrollToBottomTick = it.scrollToBottomTick + 1) }
                     simulateAutoReply()
                 }
                 .onFailure { error ->
@@ -84,7 +81,7 @@ class ChatViewModel @Inject constructor(
 
             simulateReplyUseCase()
                 .onSuccess {
-                    _state.update { it.copy(isOtherPersonTyping = false) }
+                    _state.update { it.copy(isOtherPersonTyping = false, scrollToBottomTick = it.scrollToBottomTick + 1) }
                 }
                 .onFailure { error ->
                     _state.update {
@@ -134,7 +131,7 @@ class ChatViewModel @Inject constructor(
                 }
             }
                 .onSuccess {
-                    _state.update { it.copy(isLoading = false, insertProgress = null) }
+                    _state.update { it.copy(isLoading = false, insertProgress = null, scrollToBottomTick = it.scrollToBottomTick + 1) }
                 }
                 .onFailure { error ->
                     _state.update {

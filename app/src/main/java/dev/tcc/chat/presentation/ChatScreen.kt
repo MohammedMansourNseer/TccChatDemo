@@ -2,6 +2,7 @@ package dev.tcc.chat.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -14,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,7 +31,6 @@ import dev.tcc.chat.presentation.chat.component.MessageBubble
 import dev.tcc.chat.presentation.chat.contract.ChatIntent
 import dev.tcc.chat.ui.theme.ChatTheme
 import dev.tcc.chat.utililty.Constant.ADD_BULK_DATA
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -43,53 +44,23 @@ fun ChatScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val messagesPaged = viewModel.messagesPaged.collectAsLazyPagingItems()
     val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
 
-    var hasLoadedInitially by remember { mutableStateOf(false) }
-    var previousItemCount by remember { mutableStateOf(0) }
-    var hasDoneInitialScroll by remember { mutableStateOf(false) }
+    LaunchedEffect(state.scrollToBottomTick, usePagination, messagesPaged.itemCount, state.messages.size) {
+        if (state.scrollToBottomTick == 0L) return@LaunchedEffect
 
-    LaunchedEffect(messagesPaged.loadState.refresh, messagesPaged.itemCount) {
-        val refresh = messagesPaged.loadState.refresh
-        if (usePagination &&
-            !hasDoneInitialScroll &&
-            refresh is LoadState.NotLoading &&
-            messagesPaged.itemCount > 0
-        ) {
-            listState.scrollToItem(messagesPaged.itemCount - 1)
-            hasDoneInitialScroll = true
-            previousItemCount = messagesPaged.itemCount
-        }
-    }
-
-    LaunchedEffect(messagesPaged.itemCount) {
-        if (usePagination && hasDoneInitialScroll) {
-            val current = messagesPaged.itemCount
-            if (current > previousItemCount && previousItemCount > 0) {
-                val isNearBottom = listState.firstVisibleItemIndex >= previousItemCount - 5
-                if (isNearBottom) {
-                    listState.animateScrollToItem(current - 1)
-                }
-                previousItemCount = current
+        if (usePagination) {
+            if (messagesPaged.itemCount > 0) {
+                listState.scrollToItem(0)
+            }
+        } else {
+            if (state.messages.isNotEmpty()) {
+                listState.scrollToItem(state.messages.size - 1)
             }
         }
     }
 
-
-    LaunchedEffect(state.messages.size) {
-        if (!usePagination && state.messages.isNotEmpty()) {
-            coroutineScope.launch { listState.animateScrollToItem(state.messages.size - 1) }
-        }
-    }
-
-    LaunchedEffect(state.messageCount) {
-        if (state.messageCount == 0) {
-            listState.scrollToItem(0)
-        }
-    }
-
     Scaffold(
-        contentWindowInsets = WindowInsets.safeDrawing,
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             TopAppBar(
                 title = {
@@ -122,7 +93,11 @@ fun ChatScreen(
                 onInputChange = { viewModel.handleIntent(ChatIntent.UpdateInputText(it)) },
                 onSendClick = { viewModel.handleIntent(ChatIntent.SendMessage(state.inputText)) },
                 isSending = state.isSending,
-                modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+                modifier = Modifier
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    .imePadding()
+                    .navigationBarsPadding(),
+
             )
         }
     ) { paddingValues ->
@@ -130,7 +105,6 @@ fun ChatScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .imePadding()
         ) {
             if (usePagination) {
                 PaginatedMessageList(
@@ -242,7 +216,7 @@ fun PaginatedMessageList(
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.background),
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.Bottom,
                     reverseLayout = true
                 ) {
                     if (messages.loadState.append is LoadState.Loading) {
@@ -333,38 +307,6 @@ fun PaginatedMessageList(
     }
 }
 
-@Composable
-fun ScrollToBottomButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    unreadCount: Int = 0
-) {
-    FloatingActionButton(
-        onClick = onClick,
-        modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Send,
-                contentDescription = stringResource(R.string.scroll_to_bottom_cd),
-                modifier = Modifier.size(20.dp)
-            )
-            if (unreadCount > 0) {
-                Text(
-                    text = unreadCount.toString(),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun ChatInputBar(
@@ -444,12 +386,14 @@ fun EmptyState(modifier: Modifier = Modifier) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
+            textAlign = TextAlign.Center,
             text = stringResource(R.string.empty_subtitle_1),
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
+            textAlign = TextAlign.Center,
             text = stringResource(R.string.empty_subtitle_2),
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
