@@ -8,18 +8,18 @@ import javax.inject.Inject
 class SendMessageUseCase @Inject constructor(
     private val repository: MessageRepository
 ) {
-    suspend operator fun invoke(content: String): Result<Long> {
-        return try {
-            val message = Message(
-                content = content,
-                timestamp = System.currentTimeMillis(),
-                isSent = true
-            )
-            val id = repository.insertMessage(message)
-            Result.success(id)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    suspend operator fun invoke(text: String): Result<Unit> = runCatching {
+        val now = System.currentTimeMillis()
+        val maxTimestamp = repository.getMaxTimestamp()
+        val ts = maxOf(now, maxTimestamp + 1)
+
+        val message = Message(
+            content = text.trim(),
+            timestamp = ts,
+            isSent = true
+        )
+        repository.insertMessage(message)
     }
 }
+
 
