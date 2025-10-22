@@ -35,7 +35,7 @@ This project follows **MVI (Model-View-Intent)** architecture with **Clean Archi
 - ✅ **Real-time Updates**: Reactive UI using Kotlin Flow
 
 ### Performance Features
-- ✅ **Large Dataset Testing**: Button to insert 100+ test messages
+- ✅ **Large Dataset Testing**: Button to insert +1k test messages
 - ✅ **Efficient Scrolling**: LazyColumn for smooth performance with large datasets
 - ✅ **Background Operations**: All encryption/decryption on background threads
 - ✅ **Auto-scroll**: Automatically scrolls to latest message
@@ -80,7 +80,7 @@ Room Database → Ciphertext + IV → CryptoManager.decrypt()
 ### Using the Chat
 1. **Send a message**: Type in the input field and tap the send button
 2. **Auto-reply**: After sending, you'll automatically receive "ok" as a reply
-3. **Test performance**: Tap the "+100" button in the toolbar to insert 100 test messages
+3. **Test performance**: Tap the "+1k" button in the toolbar to insert +1k test messages
 4. **Scroll**: Messages automatically scroll to the bottom
 
 ## 🧪 Testing Encryption
@@ -103,8 +103,8 @@ Room Database → Ciphertext + IV → CryptoManager.decrypt()
 
 The app includes a built-in performance testing utility:
 
-- Tap the **"+100"** button in the toolbar
-- Inserts 100 encrypted messages into the database
+- Tap the **"+1k"** button in the toolbar
+- Inserts +1k encrypted messages into the database
 - Messages are alternating sent/received with realistic timestamps
 - UI remains smooth due to LazyColumn virtualization
 
