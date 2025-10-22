@@ -14,6 +14,8 @@ hiltNavigationCompose = "1.2.0"
 ksp = "2.0.21-1.0.25"
 coroutines = "1.8.1"
 security = "1.1.0-alpha06"
+paging = "3.3.2"
+pagingCompose = "3.3.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -47,6 +49,11 @@ kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 
 # Security
 androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "security" }
+
+# Paging
+androidx-paging-runtime = { group = "androidx.paging", name = "paging-runtime-ktx", version.ref = "paging" }
+androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "pagingCompose" }
+androidx-room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
 
 # ViewModel
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleRuntimeKtx" }

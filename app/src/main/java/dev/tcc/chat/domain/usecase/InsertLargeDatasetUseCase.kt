@@ -3,22 +3,31 @@ package dev.tcc.chat.domain.usecase
 import dev.tcc.chat.data.respository.MessageRepository
 import dev.tcc.chat.domain.model.Message
 import javax.inject.Inject
-import kotlin.random.Random
 
 
 class InsertLargeDatasetUseCase @Inject constructor(
     private val repository: MessageRepository
 ) {
-    suspend operator fun invoke(count: Int = 1000): Result<Unit> {
+    suspend operator fun invoke(
+        count: Int = 200,
+        onProgress: ((Int) -> Unit)? = null
+    ): Result<Unit> {
         return try {
             val messages = mutableListOf<Message>()
-            val currentTime = System.currentTimeMillis()
             
-            // Generate messages with varied content and timestamps
+            val existingCount = repository.getMessageCount()
+            val startNumber = (existingCount / 2) + 1
+
+            val now = System.currentTimeMillis()
+            val maxTs = repository.getMaxTimestamp()
+            var baseTimestamp = maxOf(now, maxTs)
+            
+
             for (i in 1..count) {
-                val isSent = Random.nextBoolean()
+                val isSent = i % 2 == 1
+                val messageNumber = startNumber + ((i - 1) / 2)
                 val content = if (isSent) {
-                    "Test message $i - ${Random.nextInt(0, 100)}"
+                    "Test message $messageNumber"
                 } else {
                     "ok"
                 }
@@ -26,13 +35,13 @@ class InsertLargeDatasetUseCase @Inject constructor(
                 messages.add(
                     Message(
                         content = content,
-                        timestamp = currentTime - (count - i) * 60000L, // Space messages by 1 minute
+                        timestamp = baseTimestamp + (existingCount + i) * 1000L,
                         isSent = isSent
                     )
                 )
             }
             
-            repository.insertMessages(messages)
+            repository.insertMessages(messages, onProgress)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

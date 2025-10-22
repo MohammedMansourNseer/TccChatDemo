@@ -10,5 +10,5 @@ data class Message(
     @SerialName("id") val id: Long = 0,
     @SerialName("content") val content: String,
     @SerialName("timestamp") val timestamp: Long,
-    @SerialName("is_sent") val isSent: Boolean
+    @SerialName("isSent") val isSent: Boolean
 )

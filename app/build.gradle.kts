@@ -64,6 +64,7 @@ dependencies {
     // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.room.paging)
     ksp(libs.androidx.room.compiler)
 
     // Hilt
@@ -77,6 +78,10 @@ dependencies {
 
     // Security
     implementation(libs.androidx.security.crypto)
+
+    // Paging
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.paging.compose)
 
     // Testing
     testImplementation(libs.junit)

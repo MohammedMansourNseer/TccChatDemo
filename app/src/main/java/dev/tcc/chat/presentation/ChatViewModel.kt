@@ -2,33 +2,44 @@ package dev.tcc.chat.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import com.chat.domain.usecase.ObserveMessagesPagedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.tcc.chat.domain.usecase.GetMessageCountUseCase
-import dev.tcc.chat.domain.usecase.InsertLargeDatasetUseCase
-import dev.tcc.chat.domain.usecase.ObserveMessagesUseCase
-import dev.tcc.chat.domain.usecase.SendMessageUseCase
-import dev.tcc.chat.domain.usecase.SimulateReplyUseCase
+import dev.tcc.chat.data.respository.MessageRepository
+import dev.tcc.chat.domain.model.Message
+import dev.tcc.chat.domain.usecase.*
 import dev.tcc.chat.presentation.chat.contract.ChatIntent
 import dev.tcc.chat.presentation.chat.contract.ChatState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val sendMessageUseCase: SendMessageUseCase,
     private val observeMessagesUseCase: ObserveMessagesUseCase,
+    private val observeMessagesPagedUseCase: ObserveMessagesPagedUseCase,
     private val simulateReplyUseCase: SimulateReplyUseCase,
     private val insertLargeDatasetUseCase: InsertLargeDatasetUseCase,
-    private val getMessageCountUseCase: GetMessageCountUseCase
+    private val getMessageCountUseCase: GetMessageCountUseCase,
+    private val deleteAllMessagesUseCase: DeleteAllMessagesUseCase,
+    private val repository: MessageRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ChatState())
     val state: StateFlow<ChatState> = _state.asStateFlow()
+
+
+    val messagesPaged: Flow<PagingData<Message>> = observeMessagesPagedUseCase(pageSize = 100)
+        .cachedIn(viewModelScope)
 
     init {
         handleIntent(ChatIntent.LoadMessages)
@@ -40,6 +51,7 @@ class ChatViewModel @Inject constructor(
             is ChatIntent.LoadMessages -> loadMessages()
             is ChatIntent.InsertLargeDataset -> insertLargeDataset(intent.count)
             is ChatIntent.UpdateInputText -> updateInputText(intent.text)
+            is ChatIntent.ClearAllMessages -> clearAllMessages()
         }
     }
 
@@ -65,20 +77,26 @@ class ChatViewModel @Inject constructor(
         }
     }
 
+
     private fun simulateAutoReply() {
         viewModelScope.launch {
+            _state.update { it.copy(isOtherPersonTyping = true) }
+
             simulateReplyUseCase()
+                .onSuccess {
+                    _state.update { it.copy(isOtherPersonTyping = false) }
+                }
                 .onFailure { error ->
                     _state.update {
-                        it.copy(error = "Failed to simulate reply: ${error.message}")
+                        it.copy(
+                            isOtherPersonTyping = false,
+                            error = "Failed to simulate reply: ${error.message}"
+                        )
                     }
                 }
         }
     }
 
-    /**
-     * Loads all messages from the database and observes changes.
-     */
     private fun loadMessages() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
@@ -106,21 +124,23 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Inserts a large dataset for performance testing.
-     */
     private fun insertLargeDataset(count: Int) {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
+            _state.update { it.copy(isLoading = true, insertProgress = 0, error = null) }
 
-            insertLargeDatasetUseCase(count)
+            withContext(Dispatchers.IO) {
+                insertLargeDatasetUseCase(count) { progress ->
+                    _state.update { it.copy(insertProgress = progress) }
+                }
+            }
                 .onSuccess {
-                    _state.update { it.copy(isLoading = false) }
+                    _state.update { it.copy(isLoading = false, insertProgress = null) }
                 }
                 .onFailure { error ->
                     _state.update {
                         it.copy(
                             isLoading = false,
+                            insertProgress = null,
                             error = "Failed to insert dataset: ${error.message}"
                         )
                     }
@@ -128,10 +148,29 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Updates the input text field state.
-     */
     private fun updateInputText(text: String) {
         _state.update { it.copy(inputText = text) }
+    }
+
+    private fun clearAllMessages() {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
+            runCatching {
+                deleteAllMessagesUseCase()
+            }.onSuccess {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        inputText = "",
+                        messageCount = 0,
+                        messages = emptyList(),
+                        insertProgress = null,
+                        error = null
+                    )
+                }
+            }.onFailure { e ->
+                _state.update { it.copy(isLoading = false, error = e.message ?: "Failed to clear") }
+            }
+        }
     }
 }

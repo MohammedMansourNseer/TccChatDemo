@@ -4,6 +4,7 @@ import dev.tcc.chat.data.respository.MessageRepository
 import dev.tcc.chat.domain.model.Message
 import javax.inject.Inject
 
+
 class SendMessageUseCase @Inject constructor(
     private val repository: MessageRepository
 ) {

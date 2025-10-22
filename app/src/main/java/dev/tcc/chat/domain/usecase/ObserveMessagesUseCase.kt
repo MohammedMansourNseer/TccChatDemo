@@ -5,6 +5,7 @@ import dev.tcc.chat.domain.model.Message
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
+
 class ObserveMessagesUseCase @Inject constructor(
     private val repository: MessageRepository
 ) {
@@ -12,3 +13,4 @@ class ObserveMessagesUseCase @Inject constructor(
         return repository.getAllMessages()
     }
 }
+
