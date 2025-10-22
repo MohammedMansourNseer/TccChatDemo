@@ -1,3 +1,25 @@
 <resources>
-    <string name="app_name">TccChatDemo</string>
+    <string name="app_name">Tcc-Chat</string>
+
+    <string name="encrypted_chat_title">Encrypted Chat</string>
+    <string name="messages_count">%1$d messages</string>
+    <string name="clear_label">Clear</string>
+    <string name="insert_1K_label">+1K</string>
+
+    <string name="type_message_placeholder">Type a message...</string>
+    <string name="send_message_cd">Send message</string>
+    <string name="scroll_to_bottom_cd">Scroll to bottom</string>
+
+    <string name="empty_icon">🔒</string>
+    <string name="empty_title">End-to-End Encrypted Chat</string>
+    <string name="empty_subtitle_1">Messages are encrypted and stored securely</string>
+    <string name="empty_subtitle_2">Send a message to get started</string>
+
+    <string name="failed_to_load_messages">Failed to load messages</string>
+    <string name="failed_to_load_older_messages">Failed to load older messages</string>
+    <string name="failed_to_load_newer_messages">Failed to load newer messages</string>
+    <string name="retry">Retry</string>
+
+    <string name="inserting_messages">Inserting messages…</string>
+    <string name="progress_percent">%1$d%%</string>
 </resources>
