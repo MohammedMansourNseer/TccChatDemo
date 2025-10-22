@@ -17,6 +17,8 @@ import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 
 @Singleton
 class CryptoEngine @Inject constructor(
@@ -49,6 +51,29 @@ class CryptoEngine @Inject constructor(
     private val keystoreKey: SecretKey by lazy {
         createKeyIfNotExists()
         keyStore.getKey(KEY_ALIAS, null) as SecretKey
+    }
+
+    private val masterKey: MasterKey by lazy {
+        try {
+            MasterKey.Builder(context, MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .setRequestStrongBoxBacked(true)
+                .build()
+        } catch (_: Exception) {
+            MasterKey.Builder(context, MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+        }
+    }
+
+    private val encPrefs by lazy {
+        EncryptedSharedPreferences.create(
+            context,
+            PREFS_NAME,
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
     }
 
     private val dataKey: SecretKey by lazy { loadOrCreateDataKey() }
@@ -100,9 +125,10 @@ class CryptoEngine @Inject constructor(
     }
 
     private fun loadOrCreateDataKey(): SecretKey {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val ctB64 = prefs.getString(DATA_KEY_CT, null)
-        val ivB64 = prefs.getString(DATA_KEY_IV, null)
+        migratePlainPrefsIfNeeded()
+
+        val ctB64 = encPrefs.getString(DATA_KEY_CT, null)
+        val ivB64 = encPrefs.getString(DATA_KEY_IV, null)
 
         if (ctB64 != null && ivB64 != null) {
             val ct = Base64.decode(ctB64, Base64.NO_WRAP)
@@ -114,12 +140,28 @@ class CryptoEngine @Inject constructor(
         val raw = ByteArray(DATA_KEY_LEN).also { secureRandomTL.get().nextBytes(it) }
         val (wrapCt, wrapIv) = encryptWithKeystore(raw)
 
-        prefs.edit()
+        encPrefs.edit()
             .putString(DATA_KEY_CT, Base64.encodeToString(wrapCt, Base64.NO_WRAP))
             .putString(DATA_KEY_IV, Base64.encodeToString(wrapIv, Base64.NO_WRAP))
             .apply()
 
         return SecretKeySpec(raw, "AES")
+    }
+
+    private fun migratePlainPrefsIfNeeded() {
+        val plain = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val oldCt = plain.getString(DATA_KEY_CT, null)
+        val oldIv = plain.getString(DATA_KEY_IV, null)
+        if (oldCt != null && oldIv != null) {
+            encPrefs.edit()
+                .putString(DATA_KEY_CT, oldCt)
+                .putString(DATA_KEY_IV, oldIv)
+                .apply()
+            plain.edit()
+                .remove(DATA_KEY_CT)
+                .remove(DATA_KEY_IV)
+                .apply()
+        }
     }
 
     private fun encryptWithKeystore(plain: ByteArray): Pair<ByteArray, ByteArray> {
