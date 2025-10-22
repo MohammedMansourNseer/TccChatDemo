@@ -1,3 +1,10 @@
+## 📸 Screenshots
+<p align="center">
+  <img src="art/image_1.jpeg" alt="Chat – Light" width="30%"/>
+  <img src="art/image_2.jpeg" alt="Chat – Dark" width="30%"/>
+  <img src="art/image_3.jpeg" alt="+1k Insert Performance" width="30%"/>
+</p>
+
 # End-to-End Encrypted Chat Application
 
 A secure, single-screen 1:1 chat application built with Jetpack Compose that implements end-to-end encryption using Android Keystore. Messages are encrypted before storage, ensuring that unauthorized access to the APK or Room database cannot reveal any plaintext chat content.
