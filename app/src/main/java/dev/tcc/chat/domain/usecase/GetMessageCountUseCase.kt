@@ -1,6 +1,6 @@
 package dev.tcc.chat.domain.usecase
 
-import dev.tcc.chat.data.respository.MessageRepository
+import dev.tcc.chat.domain.repository.MessageRepository
 import javax.inject.Inject
 
 class GetMessageCountUseCase @Inject constructor(
