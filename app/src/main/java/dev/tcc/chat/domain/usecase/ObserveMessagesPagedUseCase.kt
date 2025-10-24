@@ -1,7 +1,7 @@
 package com.chat.domain.usecase
 
+import dev.tcc.chat.domain.repository.MessageRepository
 import androidx.paging.PagingData
-import dev.tcc.chat.data.respository.MessageRepository
 import dev.tcc.chat.domain.model.Message
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject

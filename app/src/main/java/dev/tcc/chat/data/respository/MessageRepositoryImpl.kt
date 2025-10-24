@@ -8,6 +8,7 @@ import androidx.paging.map
 import dev.tcc.chat.data.local.dao.MessageDao
 import dev.tcc.chat.data.local.entity.MessageEntity
 import dev.tcc.chat.domain.model.Message
+import dev.tcc.chat.domain.repository.MessageRepository
 import dev.tcc.chat.utililty.CryptoEngine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -21,18 +22,18 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class MessageRepository @Inject constructor(
+class MessageRepositoryImpl @Inject constructor(
     private val messageDao: MessageDao,
     private val cryptoEngine: CryptoEngine
-) {
+) : MessageRepository {
 
     private val decryptCache = LruCache<Long, String>(500)
 
-    suspend fun getMaxTimestamp(): Long = withContext(Dispatchers.IO) {
+    override suspend fun getMaxTimestamp(): Long = withContext(Dispatchers.IO) {
         messageDao.getMaxTimestamp()
     }
 
-    suspend fun insertMessage(message: Message): Long {
+    override suspend fun insertMessage(message: Message): Long {
         val (ctB64, ivB64) = cryptoEngine.encryptToBase64(message.content)
 
         val entity = MessageEntity(
@@ -48,13 +49,13 @@ class MessageRepository @Inject constructor(
         }
     }
 
-    fun getAllMessages(): Flow<List<Message>> {
+    override fun getAllMessages(): Flow<List<Message>> {
         return messageDao.getAllMessages()
             .map { entities -> entities.map { decryptEntityCached(it) } }
             .flowOn(Dispatchers.Default)
     }
 
-    fun getMessagesPaged(pageSize: Int = 20): Flow<PagingData<Message>> {
+    override fun getMessagesPaged(pageSize: Int): Flow<PagingData<Message>> {
         return Pager(
             config = PagingConfig(
                 pageSize = pageSize,
@@ -69,18 +70,18 @@ class MessageRepository @Inject constructor(
             .flowOn(Dispatchers.Default)
     }
 
-    suspend fun getMessageCount(): Int = withContext(Dispatchers.IO) {
+    override suspend fun getMessageCount(): Int = withContext(Dispatchers.IO) {
         messageDao.getMessageCount()
     }
 
-    suspend fun deleteAllMessages() = withContext(Dispatchers.IO) {
+    override suspend fun deleteAllMessages() = withContext(Dispatchers.IO) {
         messageDao.deleteAllMessages()
         decryptCache.evictAll()
     }
 
-    suspend fun insertMessages(
+    override suspend fun insertMessages(
         messages: List<Message>,
-        onProgress: ((Int) -> Unit)? = null
+        onProgress: ((Int) -> Unit)?
     ) = withContext(Dispatchers.IO) {
         val totalCount = messages.size
         var completedCount = 0
